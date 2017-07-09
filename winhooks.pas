@@ -859,7 +859,80 @@ end;
 var
   TrampolineglShaderSource: procedure(shader: GLuint; count: GLsizei; const _string: PGLchar; const length: PGLint); stdcall = nil;
   TrampolinewglGetProcAddress: function(proc: PChar): Pointer; stdcall = nil;
+  TrampolineglCreateShaderProgramv: function(AType: GLenum; count: GLsizei; _string: PGLchar): GLuint; stdcall = nil;
   ShaderWritten: Integer;
+
+function glCreateShaderProgramvBounce(AType: GLenum; count: GLsizei; _string: PGLchar): GLuint; stdcall;
+var
+  i: Integer;
+  p: PChar;
+  hash: Cardinal;
+  pa: PPointerArray;
+  s: string;
+  len: glint;
+  f: File;
+  return: Word;
+begin
+  if Assigned(TrampolineglCreateShaderProgramv) then
+  begin
+    if Assigned(_string) then
+    begin
+      pa := Pointer(_string);
+      hash := 0;
+      for i:=0 to count - 1 do
+      begin
+        if Assigned(pa[i]) then
+        begin
+          hash := hash + SuperfastHash(pa[i], System.Length(pchar(pa[i])));
+        end;
+      end;
+
+      s:=BasePath + BaseName+'_shader_'+IntToHex(hash, 8)+'.txt';
+      InterLockedIncrement(ShaderWritten);
+
+      if Config.Inject and FileExists(s) then
+      begin
+        assignfile(F, s);
+        {$i-}reset(f, 1);{$i+}
+        if ioresult = 0 then
+        begin
+          LOG('Replacing shader '+s);
+          i:=0;
+          len:=FileSize(f);
+          GetMem(p, len);
+          Blockread(f, p^, len);
+          closefile(f);
+
+          result:=TrampolineglCreateShaderProgramv(AType, 1, @p);
+          Freemem(p);
+          Exit;
+        end;
+      end;
+
+      LOG('CreateShaderProgramvBounce 5');
+      if Config.GetShaders then
+      begin
+        Assignfile(f, s);
+        {$i-}rewrite(f, 1);{$i+}
+        if ioresult = 0 then
+        begin
+          return:=$0a0d;
+          for i := 0 to count - 1 do
+          begin
+            len:=0;
+            while PChar(pa[i])[len] <> #0 do inc(len);
+            BlockWrite(f, pa[i]^, len);
+            Blockwrite(f, return, SizeOf(return));
+          end;
+          closefile(f);
+        end else
+          LOG('Could not write shader to disk!');
+      end;
+    end;
+    result:=TrampolineglCreateShaderProgramv(AType, count, _string);
+  end else
+    result:=0;
+end;
 
 procedure glShaderSourceBounce(shader: GLuint; count: GLsizei; _string: PGLchar; length: PGLint); stdcall;
 var
@@ -905,7 +978,7 @@ begin
 
           TrampolineglShaderSource(shader, 1, @p, @len);
           Freemem(p);
-          //length:=nil;
+          Exit;
         end;
       end;
 
@@ -983,6 +1056,11 @@ begin
       if not Assigned(TrampolineglShaderSource) then
         TrampolineglShaderSource:=result;
       result:=@glShaderSourceBounce;
+    end else if (proc = 'glCreateShaderProgramv') then
+    begin
+      if not Assigned(TrampolineglCreateShaderProgramv) then
+        TrampolineglCreateShaderProgramv:=result;
+      result:=@glCreateShaderProgramvBounce;
     end else if (proc = 'glCompileShader') then
     begin
       if not Assigned(TrampolineglCompileShader) then
