@@ -909,7 +909,6 @@ begin
         end;
       end;
 
-      LOG('CreateShaderProgramvBounce 5');
       if Config.GetShaders then
       begin
         Assignfile(f, s);
