@@ -1,0 +1,376 @@
+object Form1: TForm1
+  Left = 561
+  Height = 504
+  Top = 423
+  Width = 375
+  BorderStyle = bsDialog
+  Caption = 'Exemusic Recorder'
+  ClientHeight = 504
+  ClientWidth = 375
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '1.6.0.4'
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 128
+    Top = 8
+    Width = 360
+    Caption = 'Target'
+    ClientHeight = 108
+    ClientWidth = 356
+    TabOrder = 0
+    object TargetExe: TEdit
+      Left = 72
+      Height = 23
+      Top = 8
+      Width = 200
+      OnChange = TargetExeChange
+      TabOrder = 0
+    end
+    object BrowseExe: TButton
+      Left = 280
+      Height = 24
+      Top = 8
+      Width = 67
+      Caption = 'Browse'
+      OnClick = BrowseExeClick
+      TabOrder = 1
+    end
+    object Label1: TLabel
+      Left = 8
+      Height = 15
+      Top = 12
+      Width = 59
+      Caption = 'Executable:'
+      ParentColor = False
+      OnClick = Label1Click
+    end
+    object Label2: TLabel
+      Left = 8
+      Height = 15
+      Top = 44
+      Width = 62
+      Caption = 'Arguments:'
+      ParentColor = False
+    end
+    object TargetArgs: TEdit
+      Left = 72
+      Height = 23
+      Top = 40
+      Width = 200
+      TabOrder = 2
+    end
+    object Label3: TLabel
+      Left = 8
+      Height = 15
+      Top = 76
+      Width = 59
+      Caption = 'Output Dir:'
+      ParentColor = False
+    end
+    object OutputDir: TEdit
+      Left = 72
+      Height = 23
+      Top = 72
+      Width = 200
+      TabOrder = 3
+    end
+    object BrowseOutDir: TButton
+      Left = 280
+      Height = 23
+      Top = 72
+      Width = 67
+      Caption = 'Browse'
+      OnClick = BrowseOutDirClick
+      TabOrder = 4
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 8
+    Height = 201
+    Top = 144
+    Width = 360
+    Caption = 'Options'
+    ClientHeight = 181
+    ClientWidth = 356
+    TabOrder = 1
+    OnClick = GroupBox2Click
+    object DumpAudio: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'Saves various audio streams to disk'
+      Top = 8
+      Width = 88
+      Caption = 'Dump Audio'
+      Checked = True
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 0
+    end
+    object DumpACMSamples: TCheckBox
+      Left = 160
+      Height = 19
+      Hint = 'Saves all streams to disk that have been uncompressed using acmStreamConvert'
+      Top = 8
+      Width = 196
+      Caption = 'Dump ACM compressed samples'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+    end
+    object PreventFullscreen: TCheckBox
+      Left = 160
+      Height = 19
+      Hint = 'Tries to enforce windowed mode - does not work with DirectX'
+      Top = 32
+      Width = 176
+      Caption = 'Prevent Fullscreen (OGL only)'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+    end
+    object DumpShaders: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'Dump shaders (OpenGL and some DirectX)'
+      Top = 32
+      Width = 97
+      Caption = 'Dump Shaders'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+    end
+    object LogGetProcAddr: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'Logs all calls to GetProcAddress (and LoadLibrary)'
+      Top = 104
+      Width = 127
+      Caption = 'Log GetProcAddress'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 8
+    end
+    object LogAPICalls: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'Logs all dll calls (kernel32.dll and other system libs excluded). This will *really* slow down the target process.'
+      Top = 152
+      Width = 142
+      Caption = 'Log all DLL calls (slow!)'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 12
+    end
+    object PreventCreateFile: TCheckBox
+      Left = 160
+      Height = 19
+      Hint = 'Prevents writing to disk using CreateFile - this might have undesired side-effects.'
+      Top = 56
+      Width = 117
+      Caption = 'Prevent File Writes'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 5
+    end
+    object PreventSocket: TCheckBox
+      Left = 160
+      Height = 19
+      Hint = 'Prevents creation of Winsock-sockets.'
+      Top = 104
+      Width = 147
+      Caption = 'Prevent Network Access'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 9
+    end
+    object PreventCreateProc: TCheckBox
+      Left = 160
+      Height = 19
+      Hint = 'Prevents the process from spawning new processes'
+      Top = 80
+      Width = 151
+      Caption = 'Prevent Process Creation'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 7
+    end
+    object PreventLogs: TCheckBox
+      Left = 160
+      Height = 19
+      Hint = 'Just don''t log anything'
+      Top = 152
+      Width = 123
+      Caption = 'Don''t create log file'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 13
+    end
+    object LogCreateFile: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'Log all calls to CreateFile'
+      Top = 56
+      Width = 100
+      Caption = 'Log File Access'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 4
+    end
+    object LogCreateProc: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'Logs calls to CreateProcess'
+      Top = 80
+      Width = 131
+      Caption = 'Log Process Creation'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 6
+    end
+    object InjectShaders: TCheckBox
+      Left = 160
+      Height = 19
+      Hint = 'Tries to inject/replace shaders that have been previously dumped using the "Dump Shaders" option. '
+      Top = 128
+      Width = 140
+      Caption = 'Inject dumped shaders'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 11
+    end
+    object LogWGLProcs: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'Logs all calls to wglGetProcAddress'
+      Top = 128
+      Width = 136
+      Caption = 'Log WGLGetProcAddr'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 10
+    end
+  end
+  object GroupBox3: TGroupBox
+    Left = 8
+    Height = 48
+    Top = 352
+    Width = 360
+    Caption = 'Speed'
+    ClientHeight = 28
+    ClientWidth = 356
+    TabOrder = 2
+    object SlowSpeed: TRadioButton
+      Left = 8
+      Height = 19
+      Top = 0
+      Width = 77
+      Caption = 'Half Speed'
+      TabOrder = 0
+    end
+    object NormalSpeed: TRadioButton
+      Left = 128
+      Height = 19
+      Top = 0
+      Width = 95
+      Caption = 'Normal Speed'
+      Checked = True
+      TabOrder = 1
+      TabStop = True
+    end
+    object DoubleSpeed: TRadioButton
+      Left = 263
+      Height = 19
+      Top = 0
+      Width = 93
+      Caption = 'Double Speed'
+      TabOrder = 2
+    end
+  end
+  object StartButton: TButton
+    Left = 208
+    Height = 25
+    Top = 408
+    Width = 75
+    Caption = 'Start'
+    Default = True
+    Enabled = False
+    OnClick = StartButtonClick
+    TabOrder = 3
+  end
+  object ExitButton: TButton
+    Left = 293
+    Height = 25
+    Top = 408
+    Width = 75
+    Caption = 'Exit'
+    OnClick = ExitButtonClick
+    TabOrder = 4
+  end
+  object ProgressBar1: TProgressBar
+    Left = 8
+    Height = 25
+    Top = 408
+    Width = 192
+    TabOrder = 5
+  end
+  object VersionStr: TLabel
+    Left = 276
+    Height = 15
+    Top = 0
+    Width = 92
+    Alignment = taRightJustify
+    Anchors = [akTop, akRight]
+    Caption = 'Unknown Version'
+    Enabled = False
+    ParentColor = False
+  end
+  object GroupBox4: TGroupBox
+    Left = 8
+    Height = 48
+    Top = 448
+    Width = 361
+    Caption = 'Experimental'
+    ClientHeight = 28
+    ClientWidth = 357
+    TabOrder = 6
+    object UseSimpleInjector: TCheckBox
+      Left = 8
+      Height = 19
+      Top = 3
+      Width = 99
+      Caption = 'Simple Injector'
+      Checked = True
+      State = cbChecked
+      TabOrder = 0
+    end
+    object HookInProcesses: TCheckBox
+      Left = 160
+      Height = 19
+      Top = 3
+      Width = 177
+      Caption = 'Hook into spawned processes'
+      TabOrder = 1
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Title = 'Executable FIle'
+    DefaultExt = '.exe'
+    Filter = 'Executable Files (32 Bit) (*.exe)|*.exe'
+    left = 104
+    top = 40
+  end
+  object SelectDirectoryDialog1: TSelectDirectoryDialog
+    Title = 'Select Output Directory'
+    left = 208
+    top = 40
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 25
+    OnTimer = Timer1Timer
+    left = 152
+    top = 96
+  end
+end
