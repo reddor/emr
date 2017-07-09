@@ -2,7 +2,7 @@
 
 ![A pretty picture of exemusic recorder](http://i.imgur.com/iQTempz.png)
 
-Binaries available here: https://github.com/reddor/emr/files/1133860/emr-v01010220.zip
+Binaries available here: https://github.com/reddor/emr/releases/tag/v01010221
 
 ## WHAT? 
 
@@ -16,7 +16,17 @@ Most functions are just added for fun and curiosity - you can use this to find o
 
 ## TROUBLESHOOTING 
 
-If the target application crashes, try if it's related to certain options. If the binary has relocation info, remove it using stripreloc. If all fails, click the "Executable"-label a couple of times until the "Experimental" options show up. Toggle "Simple Injector" for a slightly different injection method. 
+ If the target application crashes, try if it's related to certain options. If the binary has relocation info, remove it using stripreloc. 
+ If all fails, click the "Executable"-label a couple of times until the "Experimental" options show up. 
+
+ * Simple Injector: enabled by default, disabling it will use a more complicated (and potentially more troublesome) injection method 
+   that should ensure injection before anything else from the target binary is executed. Then again, so should the simple injection method.
+
+ * Slow Wave Writing: enabled by default. Writes large chunks of audio buffers to disk as it if were playing in real-time. This is basically
+   a fix for 4klang when a single large buffer is allocated, passed to the audio api and then filled - this option might cause problems in other 
+   scenarios.
+
+ * Hook into spawned processes: Use this when encountering droppers that spawns a new process. e.g. obscure packers.
 
 "Double Speed" might cause problems if your CPU is too slow (or your soundcard does not support twice the samplerate). Use "Half speed" instead.
 
