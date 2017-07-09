@@ -30,6 +30,7 @@ type
     GetShaders: Boolean;
     Inject: Boolean;
     TraceAll: Boolean;
+    SlowWaveWrite: Boolean;
     OutputPath: array[0..MaxPathLen-1] of Char;
     HookInNewProcesses: Boolean;
     HookDLLLocation: array[0..MaxPathLen-1] of Char;
@@ -846,7 +847,10 @@ begin
       p:=GetHandleObj(x1, 'wave');
       if Assigned(p) and Assigned(x2) then
       begin
-        p.WriteData(x2^.lpData, x2^.dwBufferLength);
+        if Config.SlowWaveWrite then
+          p.WriteWaveHdr(x2, GetTickCount)
+        else
+          p.WriteData(x2^.lpData, x2^.dwBufferLength);
       end;
     end;
   end;
@@ -1458,6 +1462,12 @@ begin
 
   LOG('EMR: Output directory: ' + BasePath);
   LOG('EMR: Base filename ' + BaseName);
+
+  if Config.SlowWaveWrite then
+  begin
+    LOG('EMR: Creating Thread for writing wave buffers slowly...');
+    SlowWriterThread:=TSlowWriterThread.Create;
+  end;
 
   LoadDirect3D9;
 

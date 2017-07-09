@@ -13,6 +13,7 @@ type
   TForm1 = class(TForm)
     BrowseExe: TButton;
     BrowseOutDir: TButton;
+    CheckBox1: TCheckBox;
     UseSimpleInjector: TCheckBox;
     HookInProcesses: TCheckBox;
     GroupBox4: TGroupBox;
@@ -151,6 +152,7 @@ begin
   FSettings.OutputPath:=OutputDir.Text;
   FSettings.HookDLLLocation:=ExtractFilePath(Paramstr(0)) + HookDLLName;
   FSettings.HookInNewProcesses:=HookInProcesses.Checked;
+  FSettings.SlowWaveWrite:=Checkbox1.Checked;
   if SlowSpeed.Checked then
     Fsettings.SpeedFactor:=1
   else if DoubleSpeed.Checked then

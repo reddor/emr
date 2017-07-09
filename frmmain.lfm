@@ -1,11 +1,11 @@
 object Form1: TForm1
-  Left = 561
-  Height = 504
-  Top = 423
+  Left = 1245
+  Height = 528
+  Top = 533
   Width = 375
   BorderStyle = bsDialog
   Caption = 'Exemusic Recorder'
-  ClientHeight = 504
+  ClientHeight = 528
   ClientWidth = 375
   OnCreate = FormCreate
   Position = poScreenCenter
@@ -328,11 +328,11 @@ object Form1: TForm1
   end
   object GroupBox4: TGroupBox
     Left = 8
-    Height = 48
+    Height = 72
     Top = 448
     Width = 361
     Caption = 'Experimental'
-    ClientHeight = 28
+    ClientHeight = 52
     ClientWidth = 357
     TabOrder = 6
     object UseSimpleInjector: TCheckBox
@@ -352,6 +352,16 @@ object Form1: TForm1
       Width = 177
       Caption = 'Hook into spawned processes'
       TabOrder = 1
+    end
+    object CheckBox1: TCheckBox
+      Left = 8
+      Height = 19
+      Top = 24
+      Width = 119
+      Caption = 'Slow Wave Writing'
+      Checked = True
+      State = cbChecked
+      TabOrder = 2
     end
   end
   object OpenDialog1: TOpenDialog
