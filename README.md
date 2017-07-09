@@ -25,11 +25,16 @@ If all of the above hints are stupid and didn't help, your fucked. You can file 
  This project uses several things that shall be credited accordingly:
 
  Delphi Detours: https://github.com/mahdisafsafi/delphi-detours-library
+ 
  DirectX Headers: http://www.clootie.ru/delphi/index.html
+ 
  Delphi JEDI: http://www.delphi-jedi.org
+ 
  SuperFastHash: http://www.azillionmonkeys.com/qed/hash.html
+ 
  afxCodeHook by Aphex (no url) 
- Icon: http://www.iconarchive.17:25 09.07.2017com/show/cold-fusion-hd-icons-by-chrisbanks2/sound-recorder-alt-icon.html
+ 
+ Icon: http://www.iconarchive.com/show/cold-fusion-hd-icons-by-chrisbanks2/sound-recorder-alt-icon.htm
 
  ...and of course the awesome http://www.lazarus-ide.org/ & http://freepascal.org
 
