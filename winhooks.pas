@@ -111,7 +111,7 @@ begin
   cs.Leave;
 end;
 
-procedure RegisterHandleObj(h: THandle; const subSystem: string; data: Pointer);
+procedure RegisterHandleObj(h: THandle; const subSystem: string; data: TObject);
 begin
   if Assigned(cs) then
   begin
@@ -1400,6 +1400,31 @@ begin
   end;
 end;
 
+var
+  TrampolineExitProcess: procedure(ExitCode: UInt); stdcall;
+
+procedure ItemHouseKeeping(data,arg:pointer);
+begin
+  //LOG('Housekeeping for '+TObject(data).ClassName);
+  TObject(data).free;
+end;
+
+procedure ExitProcessBounce(ExitCode: UInt); stdcall;
+begin
+  Log('ExitProcess('+IntToStr(ExitCode)+')');
+  // housekeeping
+  cs.Enter;
+  try
+    Items.ForEachCall(ItemHouseKeeping, nil);
+    Items.Clear;
+  finally
+    cs.Leave;
+  end;
+  Log('Housekeeping done, good bye!');
+  if Assigned(TrampolineExitProcess) then
+    TrampolineExitProcess(ExitCode);
+end;
+
 procedure StartHook(Settings: PHookSettings); stdcall;
 var
   p: Pointer;
@@ -1470,6 +1495,8 @@ begin
   end;
 
   LoadDirect3D9;
+
+  TrampolineExitProcess := InterceptCreate(@ExitProcess, @ExitProcessBounce);
 
   if Config.DumpACM then
   begin
