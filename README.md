@@ -20,7 +20,7 @@ If the target application crashes, try if it's related to certain options. If th
 
 "Double Speed" might cause problems if your CPU is too slow (or your soundcard does not support twice the samplerate). Use "Half speed" instead.
 
-If all of the above hints are stupid and didn't help, your fucked. You can file a bug here.
+If all of the above hints are stupid and didn't help, you're out of luck. You can file a bug here.
 
 ## CREDITS 
 
