@@ -2,6 +2,8 @@
 
 ![A pretty picture of exemusic recorder](http://i.imgur.com/iQTempz.png)
 
+Binaries available here: https://github.com/reddor/emr/files/1133860/emr-v01010220.zip
+
 ## WHAT? 
 
 Exemusic Recorder is a tool originally written to record music from certain programs, such as EXEMUSIC or 4/8/16/32/64 kB intros, a common trait found in the demoscene. It has some extra features that might or might not be helpful when analyzing programs (intros). If you have no idea what I'm talking about, this tool is not for you.
