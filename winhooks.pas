@@ -554,20 +554,20 @@ var
 
 function acmDriverCloseBounce(had:HACMDRIVER; fdwClose:DWORD):MMRESULT; stdcall;
 begin
-  Log('acmDriverClose('+IntToHex(had, 8)+', '+IntToStr(fdwClose)+')');
+  //Log('acmDriverClose('+IntToHex(had, 8)+', '+IntToStr(fdwClose)+')');
   result:=TrampolineAcmDriverclose(had, fdwClose);
 end;
 
 function acmMetricsBounce(hao: HACMOBJ; uMetric: UINT; pMetric: LPVOID): MMResult; stdcall;
 begin
   result:=TrampolineAcmMetrics(hao, uMetric, pMetric);
-  log('acmMetrics('+IntToHex(NativeUInt(hao), 8)+', '+ IntToStr(uMetric)+', '+IntToHex(NativeUInt(pMetric), 8)+') = '+IntToStr(result));
+  //log('acmMetrics('+IntToHex(NativeUInt(hao), 8)+', '+ IntToStr(uMetric)+', '+IntToHex(NativeUInt(pMetric), 8)+') = '+IntToStr(result));
 end;
 
 function acmDriverOpenBounce(phad: LPHACMDRIVER; HACMDRIVERID: HACMDRIVERID; fdwOpen: DWORD): MMResult; stdcall;
 begin
   result:=TrampolineAcmDriveropen(phad, HACMDRIVERID, fdwOpen);
-  log('acmDriverOpen('+IntToHex(NativeUInt(phad), 8)+', '+IntToHex(HACMDRIVERID, 8)+', '+IntTOStr(fdwOpen)+') = '+IntToStr(result));
+  //log('acmDriverOpen('+IntToHex(NativeUInt(phad), 8)+', '+IntToHex(HACMDRIVERID, 8)+', '+IntTOStr(fdwOpen)+') = '+IntToStr(result));
 end;
 
 function acmStreamPrepareHeaderBounce(has: HACMSTREAM;
@@ -575,7 +575,7 @@ function acmStreamPrepareHeaderBounce(has: HACMSTREAM;
                         fdwPrepare: DWORD
                         ): MMResult; stdcall;
 begin
-  log('acmStreamPrepareHeader');
+  //log('acmStreamPrepareHeader');
   result:=TrampolineacmStreamPrepareHeader(has, pash, fdwPrepare);
 end;
 
@@ -595,11 +595,12 @@ end;
 var
   originalacmDriverEnumCallback: ACMDRIVERENUMCB;
   originalacmFormatEnumCallback: ACMFORMATENUMCB;
+
 function myacmDriverEnumCallback(hadid:HACMDRIVERID; dwInstance:DWORD; fdwSupport:DWORD):BOOL; stdcall;
 begin
-  log('acmDriverEnumCallback('+IntToHex(hadid, 8)+', '+ IntToStr(dwInstance) + ', '+IntToStr(fdwSupport)+') start');
+  //log('acmDriverEnumCallback('+IntToHex(hadid, 8)+', '+ IntToStr(dwInstance) + ', '+IntToStr(fdwSupport)+') start');
   result:=originalacmDriverEnumCallback(hadid, dwInstance, fdwSupport);
-  log('acmDriverEnumCallback('+IntToHex(hadid, 8)+', '+ IntToStr(dwInstance) + ', '+IntToStr(fdwSupport)+') = '+BoolToStr(result, 'True', 'False'));
+  //log('acmDriverEnumCallback('+IntToHex(hadid, 8)+', '+ IntToStr(dwInstance) + ', '+IntToStr(fdwSupport)+') = '+BoolToStr(result, 'True', 'False'));
 end;
 
 function myacmFormatEnumCallback(hadid:HACMDRIVERID;
@@ -608,21 +609,21 @@ function myacmFormatEnumCallback(hadid:HACMDRIVERID;
                                 fdwSupport:DWORD):BOOL; stdcall;
 begin
   result:=originalacmFormatEnumCallback(hadid, pafd, dwInstance, fdwSupport);
-  log('acmFormatEnumCallback('+IntToStr(pafd.cbStruct)+', '+IntToStr(pafd.cbwfx)+', '+IntToStr(pafd.dwFormatIndex)+
-   ', '+IntToStr(pafd.dwFormatTag)+', '+IntToStr(pafd.fdwSupport)+', "'+pafd.szFormat+'"), ..., '+IntToHex(dwInstance, 8)+', '+IntToStr(fdwSupport)+') = '+BoolToStr(result, 'True', 'False'));
-   LogFormat('pafd fmt', pafd.pwfx);
+  //log('acmFormatEnumCallback('+IntToStr(pafd.cbStruct)+', '+IntToStr(pafd.cbwfx)+', '+IntToStr(pafd.dwFormatIndex)+
+  // ', '+IntToStr(pafd.dwFormatTag)+', '+IntToStr(pafd.fdwSupport)+', "'+pafd.szFormat+'"), ..., '+IntToHex(dwInstance, 8)+', '+IntToStr(fdwSupport)+') = '+BoolToStr(result, 'True', 'False'));
+  // LogFormat('pafd fmt', pafd.pwfx);
 end;
 
 function acmDriverEnumBounce(fnCallback: ACMDRIVERENUMCB;
                            dwInstance: DWORD_PTR;
                            fdwEnum:DWORD           ): MMResult; stdcall;
 begin
-  log('acmDriverEnum('+IntToHex(NativeUInt(@fnCallback), 8)+', '+IntToHex(DwInstance, 8)+', '+IntToStr(fdwEnum)+') start');
-  if Assigned(originalacmDriverEnumCallback) then
-  log('acmDriverEnum is being used multithreaded (or this code is broken). Either way, crap');
+  //log('acmDriverEnum('+IntToHex(NativeUInt(@fnCallback), 8)+', '+IntToHex(DwInstance, 8)+', '+IntToStr(fdwEnum)+') start');
+  //if Assigned(originalacmDriverEnumCallback) then
+  //log('acmDriverEnum is being used multithreaded (or this code is broken). Either way, crap');
   if not Assigned(fnCallback) then
   begin
-    log('acmDriverEnum no callback');
+    //log('acmDriverEnum no callback');
     result:=TrampolineacmDriverEnum(fnCallback, dwInstance, fdwEnum);
     Exit;
   end;
@@ -634,7 +635,7 @@ begin
     originalacmDriverEnumCallback:=nil;
     cs2.Leave;
   end;
-  log('acmDriverEnum done');
+  //log('acmDriverEnum done');
 end;
 
 
@@ -645,25 +646,25 @@ function acmFormatEnumBounce(had:HACMDRIVER;
                         fdwEnum: DWORD
                         ): MMResult; stdcall;
 begin
-  log('acmFormatEnum('+IntToHex(had, 8)+', ('+IntToStr(pafd.cbStruct)+', '+IntToStr(pafd.cbwfx)+', '+IntToStr(pafd.dwFormatIndex)+
-  ', '+IntToStr(pafd.dwFormatTag)+', '+IntToStr(pafd.fdwSupport)+', "'+pafd.szFormat+'"), ..., '+IntToStr(dwInstance)+', '+IntToStr(fdwEnum)+') start');
+  //log('acmFormatEnum('+IntToHex(had, 8)+', ('+IntToStr(pafd.cbStruct)+', '+IntToStr(pafd.cbwfx)+', '+IntToStr(pafd.dwFormatIndex)+
+  //', '+IntToStr(pafd.dwFormatTag)+', '+IntToStr(pafd.fdwSupport)+', "'+pafd.szFormat+'"), ..., '+IntToStr(dwInstance)+', '+IntToStr(fdwEnum)+') start');
 
   if not Assigned(fnCallback) then
   begin
     result:=TrampolineacmFormatEnum(had, pafd, fnCallback, dwInstance, fdwEnum);
-    log('no callback in acmFormatEnum');
+    //log('no callback in acmFormatEnum');
   end else
   begin
-    if Assigned(originalacmFormatEnumCallback) then
-      log('acmFormatEnum is being used multithreaded (or this code is broken). Either way, crap');
+    //if Assigned(originalacmFormatEnumCallback) then
+    //  log('acmFormatEnum is being used multithreaded (or this code is broken). Either way, crap');
 
     originalacmFormatEnumCallback:=fnCallback;
     result:=TrampolineacmFormatEnum(had, pafd, @myacmFormatEnumCallback, dwInstance, fdwEnum);
     originalacmFormatEnumCallback:=nil;
   end;
-  log('acmFormatEnum('+IntToHex(had, 8)+', ('+IntToStr(pafd.cbStruct)+', '+IntToStr(pafd.cbwfx)+', '+IntToStr(pafd.dwFormatIndex)+
-  ', '+IntToStr(pafd.dwFormatTag)+', '+IntToStr(pafd.fdwSupport)+', "'+pafd.szFormat+'"), ..., '+IntToStr(dwInstance)+', '+IntToStr(fdwEnum)+') = '+IntToStr(result));
-  LogFormat('pafd fmt', pafd.pwfx);
+  //log('acmFormatEnum('+IntToHex(had, 8)+', ('+IntToStr(pafd.cbStruct)+', '+IntToStr(pafd.cbwfx)+', '+IntToStr(pafd.dwFormatIndex)+
+  //', '+IntToStr(pafd.dwFormatTag)+', '+IntToStr(pafd.fdwSupport)+', "'+pafd.szFormat+'"), ..., '+IntToStr(dwInstance)+', '+IntToStr(fdwEnum)+') = '+IntToStr(result));
+  //LogFormat('pafd fmt', pafd.pwfx);
 end;
 
 
@@ -671,7 +672,7 @@ function acmStreamCloseBounce(has:THandle; fdwClose:DWORD):MMRESULT; stdcall;
 var
   r: TWaveRecorder;
 begin
-  log('acmStreamClose');
+  //log('acmStreamClose');
   if Assigned(TrampolineacmStreamClose) then
   begin
     result := TrampolineacmStreamClose(has, fdwClose);
@@ -696,9 +697,9 @@ function acmStreamOpenBounce(phas:PHandle;       // pointer to stream handle
 var
   s: string;
 begin
-  log('acmStreamOpen('+IntToHex(NativeUInt(phas), 8)+', '+IntToHex(had, 8)+', ..., ..., '+IntToHex(NativeUInt(pwfltr), 8)+', '+IntToHex(dwCallback, 8)+', '+IntToStr(dwInstance)+', '+IntToStr(fdwOpen)+')');
-  LogFormat('pwfxSrc', pwfxSrc);
-  LogFormat('pwfxDst', pwfxDst);
+  //log('acmStreamOpen('+IntToHex(NativeUInt(phas), 8)+', '+IntToHex(had, 8)+', ..., ..., '+IntToHex(NativeUInt(pwfltr), 8)+', '+IntToHex(dwCallback, 8)+', '+IntToStr(dwInstance)+', '+IntToStr(fdwOpen)+')');
+  //LogFormat('pwfxSrc', pwfxSrc);
+  //LogFormat('pwfxDst', pwfxDst);
   if Assigned(TrampolineacmStreamOpen) then
   begin
     result := TrampolineacmStreamOpen(phas, had, pwfxSrc, pwfxDst, pwfltr, dwCallback, dwInstance, fdwOpen);
@@ -1303,7 +1304,7 @@ begin
     begin
       hash := SuperfastHash(pSrcData, srcDataSize);
 
-      if Assigned(x3) then
+      if Assigned(x3) and (PChar(x3) <> '') then
         s:=BasePath + BaseName +'_shader_'+PChar(x3)+'.txt'
       else
         s:=BasePath + BaseName +'_shader_'+IntToHex(hash, 8)+'.txt';
@@ -1511,6 +1512,7 @@ begin
     Exit;
 
   Randomize;
+
   if not Assigned(Settings) then
   begin
     MessageBoxA(0, 'No parameters!', 'Hook Error', MB_ICONERROR);
@@ -1526,6 +1528,8 @@ begin
     ExitProcess(-1);
     Exit;
   end;
+
+  //RegisterLibrary(LoadLibrary('kernel32.dll'), 'kernel32.dll');
 
   BasePath:=Config.OutputPath;
   if Length(BasePath)=0 then
@@ -1582,12 +1586,12 @@ begin
     TrampolineacmStreamClose := InterceptCreate(GetProcAddress(hng, 'acmStreamClose'), @acmStreamCloseBounce);
     TrampolineacmStreamConvert := InterceptCreate(GetProcAddress(hng, 'acmStreamConvert'), @acmStreamConvertBounce);
 
-    TrampolineacmDriverEnum:=InterceptCreate(GetProcAddress(hng, 'acmDriverEnum'), @acmDriverEnumBounce);
-    TrampolineacmFormatEnum:=InterceptCreate(GetProcAddress(hng, 'acmFormatEnumW'), @acmFormatEnumBounce);
-    TrampolineacmStreamPrepareHeader:=InterceptCreate(GetProcAddress(hng, 'acmStreamPrepareHeader'), @acmStreamPrepareHeaderBounce);
-    TrampolineAcmDriveropen:=InterceptCreate(GetProcAddress(hng, 'acmDriverOpen'), @acmDriverOpenBounce);
-    TrampolineAcmDriverclose:=InterceptCreate(GetProcAddress(hng, 'acmDriverClose'), @acmDriverCloseBounce);
-    TrampolineAcmMetrics:=InterceptCreate(GetProcAddress(hng, 'acmMetrics'), @acmMetricsBounce);
+    //TrampolineacmDriverEnum:=InterceptCreate(GetProcAddress(hng, 'acmDriverEnum'), @acmDriverEnumBounce);
+    //TrampolineacmFormatEnum:=InterceptCreate(GetProcAddress(hng, 'acmFormatEnumW'), @acmFormatEnumBounce);
+    //TrampolineacmStreamPrepareHeader:=InterceptCreate(GetProcAddress(hng, 'acmStreamPrepareHeader'), @acmStreamPrepareHeaderBounce);
+    //TrampolineAcmDriveropen:=InterceptCreate(GetProcAddress(hng, 'acmDriverOpen'), @acmDriverOpenBounce);
+    //TrampolineAcmDriverclose:=InterceptCreate(GetProcAddress(hng, 'acmDriverClose'), @acmDriverCloseBounce);
+    //TrampolineAcmMetrics:=InterceptCreate(GetProcAddress(hng, 'acmMetrics'), @acmMetricsBounce);
   end;
 
   TrampolineCreateFileA := InterceptCreate(@CreateFileA, @CreateFileABounce);
