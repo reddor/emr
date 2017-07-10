@@ -198,6 +198,7 @@ begin
   ClientHeight:=StartButton.Top + StartButton.Height + 8;
   {$IFNDEF CPUX86}
   UseSimpleInjector.Enabled:=False;
+  LogAPICalls.Enabled:=False;
   {$ENDIF}
 end;
 
