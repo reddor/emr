@@ -8,7 +8,11 @@ uses
   Classes, SysUtils, winhooks;
 
 const
+{$IFDEF CPUX86}
   HookDLLName = 'emrhook.dll';
+{$ELSE}
+  HookDLLName = 'emrhook64.dll';
+{$ENDIF}
   AppTitle = 'Exemusic Recorder';
 
 type

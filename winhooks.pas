@@ -37,7 +37,7 @@ type
   end;
 
 const
-  WinHookVersion = $01010000 + SizeOf(THookSettings);
+  WinHookVersion = $01020000 + SizeOf(THookSettings);
 
 
 procedure StartHook(Settings: PHookSettings); stdcall;
@@ -1305,7 +1305,7 @@ begin
       hash := SuperfastHash(pSrcData, srcDataSize);
 
       if Assigned(x3) and (PChar(x3) <> '') then
-        s:=BasePath + BaseName +'_shader_'+PChar(x3)+'.txt'
+        s:=BasePath + BaseName +'_shader_'+PChar(x3)+'_'+IntToHex(hash, 8)+'.txt'
       else
         s:=BasePath + BaseName +'_shader_'+IntToHex(hash, 8)+'.txt';
       InterLockedIncrement(ShaderWritten);
@@ -1324,6 +1324,7 @@ begin
           result:=TrampolineD3DCompile(p, size, x3, x4, x5, x6, x7, x8, x9, x10, x11);
           LOG('D3dCompile('+ExtractFilename(s)+') = '+IntToHex(NativeUInt(result), 8));
           Freemem(p);
+          Exit;
         end;
       end else
       begin
@@ -1556,6 +1557,9 @@ begin
   begin
     StartLog;
     LOG('Exemusic Recorder v' + IntToHex(WinHookVersion, 8) );
+    {$IFNDEF CPUX86}
+    LOG('Experimental 64 bit version');
+    {$ENDIF}
   end;
 
 

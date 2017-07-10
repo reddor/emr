@@ -5,7 +5,7 @@ unit dllinject;
 interface
 
 uses
-  Classes, SysUtils, exereader, afxCodeHook, Windows, JwaWinType, InstDecode;
+  Classes, SysUtils, exereader, Windows, JwaWinType, InstDecode;
 
 type
   { This buffer will be injected into the spawned process. This will be used to
@@ -59,6 +59,28 @@ begin
   finally
     f.Free;
   end;
+end;
+
+function SizeOfProc(Proc: pointer): longword;
+var
+  Length: longword;
+  Inst: TInstruction;
+begin
+  FillChar(Inst, SizeOf(Inst), 0);
+  {$ifdef CPUX86}
+  Inst.Archi:=CPUX32;
+  {$ELSE}
+  Inst.Archi:=CPUX64;
+  {$ENDIF}
+  Inst.Addr:=Proc;
+  Result := 0;
+  repeat
+    Length := DecodeInst(@Inst);
+    Inst.Addr := Inst.NextInst;
+    Inc(Result, Length);
+    if Inst.OpType = otRET then
+      Break;
+  until Length = 0;
 end;
 
 function InjectDLL(PID: Cardinal; sDll, CallProc: string; CustomData: Pointer;
@@ -124,7 +146,8 @@ var
   ProcessInformation: PROCESS_INFORMATION;
   hProcess: THANDLE;
   entry: PtrUInt;
-  oldProtect, bytesRead: DWORD;
+  oldProtect: DWORD;
+  bytesRead: PTRUINT;
   original,
   patch: array[0..1] of Byte;
   i: Integer;
@@ -148,11 +171,16 @@ begin
         fkExe32:
         begin
           entry:=f.NTHeader.OptionalHeader.ImageBase + f.NTHeader.OptionalHeader.AddressOfEntryPoint;
+          {$ifndef CPUX86}
+          raise Exception.Create('This is a 32 bit executable - please use the 32 bit flavour of this program!');
+          {$endif}
         end;
         fkExe64:
         begin
           entry:=f.NTHeader64.OptionalHeader.ImageBase + f.NTHeader64.OptionalHeader.AddressOfEntryPoint;
-          raise Exception.Create('Only 32 bit executables are supported at this time');
+          {$ifdef CPUX86}
+          raise Exception.Create('This is a 64 bit executable - please use the 64 bit flavour of this program!');
+          {$endif}
         end;
         fkExeArm:
         begin
@@ -179,7 +207,9 @@ begin
     hProcess:=ProcessInformation.hProcess;
 
     try
+      {$IFDEF CPUX86}
       if SimpleInject or IsRelocatable then
+      {$ENDIF}
       begin
         { just inject while running without all that fancy patching...
           the more I test this, the more reasonable this approach seems - it just
@@ -197,6 +227,7 @@ begin
         Exit;
       end;
 
+      {$IFDEF CPUX86}
       if not VirtualProtectEx(hProcess, LPVOID(entry), 2, PAGE_EXECUTE_READWRITE, @oldProtect)  then
       begin
         raise Exception.Create('Cannot unprotect entrypoint (relocatable? ALSR?)');
@@ -256,7 +287,7 @@ begin
 
       // resume process
       ResumeThread(ProcessInformation.hThread);
-
+      {$ENDIF}
     except
       // terminate process and throw again
       TerminateProcess(hProcess, UINT(-1));

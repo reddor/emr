@@ -17,9 +17,6 @@
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -42,7 +39,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="emrhook"/>
+      <Filename Value="emrhook64"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
@@ -55,8 +52,8 @@
     </Parsing>
     <CodeGeneration>
       <RelocatableUnit Value="True"/>
-      <TargetCPU Value="i386"/>
-      <TargetOS Value="win32"/>
+      <TargetCPU Value="x86_64"/>
+      <TargetOS Value="win64"/>
       <Optimizations>
         <OptimizationLevel Value="3"/>
       </Optimizations>

@@ -30,7 +30,7 @@ type
     function AttachToProc(Proc: Pointer; Name: string): Boolean;
   end;
 
-procedure callproc(foo: Integer); assembler;
+//procedure callproc(foo: Integer); assembler;
 
 function GenerateProc86(Target: PByteArray; Ident: Integer; LogCall, OriginalProc: Pointer): Pointer;
 
@@ -123,37 +123,6 @@ begin
   LOG(FunctionNames[Cardinal(id mod Length(FunctionNames))]);
   except
   end;
-  (*  Pool.FCS.Enter;
-  try
-    Inc(Hnkh);
-    if Hnkh = 1 then
-    begin
-      if id < Length(FunctionNames) then
-        Writeln(FunctionNames[id])
-      else
-        Writeln('CORRUPTED CORE');
-    end;
-    Dec(Hnkh);
-  finally
-    Pool.FCS.Leave;
-  end; *)
-end;
-
-procedure fakeproc(bar: Integer); stdcall;
-begin
-  // Writeln('I AM ORIGINAL PROC ',bar);
-end;
-
-procedure callproc(foo: Integer); stdcall; assembler;
-asm
-  pushad
-  push $FF00FF1
-  mov eax, logcall
-  call logcall
-  popad
-  jmp fakeproc
-//  push eip
-  db $ff, $15, $01, $02, $03, $04
 end;
 
 { TCallerPool }

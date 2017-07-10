@@ -14,12 +14,15 @@
 // The Original Code is CPUID.pas.
 //
 // The Initial Developer of the Original Code is Mahdi Safsafi [SMP3].
-// Portions created by Mahdi Safsafi . are Copyright (C) 2013-2015 Mahdi Safsafi .
+// Portions created by Mahdi Safsafi . are Copyright (C) 2013-2017 Mahdi Safsafi .
 // All Rights Reserved.
 //
 // **************************************************************************************************
 
 unit CPUID;
+{$IFDEF FPC}
+{$MODE DELPHI}
+{$ENDIF FPC}
 
 interface
 
@@ -115,10 +118,17 @@ asm
   PUSH EBX
   MOV EDI,EDX
   CPUID
-  MOV TCPUIDStruct(EDI).rEAX,EAX
-  MOV TCPUIDStruct(EDI).rEBX,EBX
-  MOV TCPUIDStruct(EDI).rECX,ECX
-  MOV TCPUIDStruct(EDI).rEDX,EDX
+  {$IFNDEF FPC}
+  MOV EDI.TCPUIDStruct.rEAX,EAX
+  MOV EDI.TCPUIDStruct.rEBX,EBX
+  MOV EDI.TCPUIDStruct.rECX,ECX
+  MOV EDI.TCPUIDStruct.rEDX,EDX
+  {$ELSE FPC}
+  MOV [EDI].TCPUIDStruct.rEAX,EAX
+  MOV [EDI].TCPUIDStruct.rEBX,EBX
+  MOV [EDI].TCPUIDStruct.rECX,ECX
+  MOV [EDI].TCPUIDStruct.rEDX,EDX
+  {$ENDIF !FPC}
   POP EBX
   POP ECX
   POP EDI
@@ -129,10 +139,10 @@ asm
   MOV RAX,RCX
   MOV R9,RDX
   CPUID
-  MOV R9.TCPUIDStruct.rEAX,EAX
-  MOV R9.TCPUIDStruct.rEBX,EBX
-  MOV R9.TCPUIDStruct.rECX,ECX
-  MOV R9.TCPUIDStruct.rEDX,EDX
+  MOV [R9].TCPUIDStruct.rEAX,EAX
+  MOV [R9].TCPUIDStruct.rEBX,EBX
+  MOV [R9].TCPUIDStruct.rECX,ECX
+  MOV [R9].TCPUIDStruct.rEDX,EDX
   POP RDX
   POP RBX
   POP R9
@@ -254,8 +264,7 @@ begin
     CallCPUID(1, Info);
     r := Info.rEAX and $F00;
     case r of
-      $F00, $600:
-        Include(CPUInsts, iMultiNop);
+      $F00, $600: Include(CPUInsts, iMultiNop);
     end;
     if ___IsAVXSupported then
       Include(CPUEncoding, VEX);

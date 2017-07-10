@@ -196,6 +196,9 @@ begin
   VersionStr.Caption:='v'+IntToHex(WinHookVersion, 8);
   FSecretCounter:=0;
   ClientHeight:=StartButton.Top + StartButton.Height + 8;
+  {$IFNDEF CPUX86}
+  UseSimpleInjector.Enabled:=False;
+  {$ENDIF}
 end;
 
 procedure TForm1.TargetExeChange(Sender: TObject);
