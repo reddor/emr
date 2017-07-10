@@ -110,6 +110,7 @@ begin
 end;
 
 begin
+  Application.Title:='Exemusic Recorder 64';
   case GetHookDLLStatus of
     dtNotFound:
       begin
