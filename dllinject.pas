@@ -199,6 +199,9 @@ begin
   FIllchar(ProcessInformation, SizeOf(ProcessInformation), #0);
   StartupInfo.cb:=SizeOf(StartupInfo);
 
+  // change to same directory as target
+  chdir(ExtractFilePath(target));   
+  
   // create new process with target
 
   s:= target + ' ' + params;
