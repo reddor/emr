@@ -930,6 +930,9 @@ begin
       end;
     end;
     result:=TrampolineglCreateShaderProgramv(AType, count, _string);
+    if Config.GetShaders then
+      LOG('Dumped shader '+s+', glCreateShaderProgramv() = '+IntToHex(result, 8));
+
   end else
     result:=0;
 end;
@@ -1008,6 +1011,9 @@ begin
       end;
     end;
     TrampolineglShaderSource(shader, count, _string, length);
+    if Config.GetShaders then
+      LOG('Dumped shader '+s+' id '+IntToHex(shader, 8));
+
   end;
 end;
 
