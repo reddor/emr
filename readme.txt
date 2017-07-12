@@ -24,8 +24,10 @@
  I really hope the UI is self explanatory. Select executable, arguments & output directory, choose options, press start.
  
  Most functions are just added for fun and curiosity - you can use this to find out what certain intros do, what files and DLLs they load,
- how they call certain APIs... It might have been used to analyze malware, too - but don't take my word for it, and always make sure to run
- those things in a VM.
+ how they call certain APIs. Some of these features might be unfinished, not work at all or have unintended side effects. 
+ This tool might have been used to analyze malware, too - but don't take my word for it, and always make sure to run those things in a VM.
+
+ 32 bit and 64 bit versions available - most intros are 32 bit anyway, 64 bit is fairly untested and rather experimental.
 
  === TROUBLESHOOTING ===
 
