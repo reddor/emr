@@ -59,42 +59,25 @@ begin
   Ofs := 0;
   Target[Ofs] := $60;  // pusha
   Inc(Ofs, 1);
+
   Target[Ofs] := $68;  // push ident
   Inc(Ofs, 1);
-
-  // Target[Ofs] := $C3;  // int 3
-  // Inc(Ofs, 1);
-
-  PInteger(@Target[Ofs])^ := Ident; // 2 3 4 5
+  PInteger(@Target[Ofs])^ := Ident;
   Inc(Ofs, 4);
-
-  (*
-  Target[Ofs] := $9A;
-  Inc(Ofs);
-  PPointer(@Target[Ofs])^ := LogCall;
-  Inc(Ofs, 4);      *)
 
   Target[Ofs] := $e8; // call log
   Inc(Ofs, 1);
-  // 7 8 9 10
+
   PInteger(@Target[Ofs])^ := PtrUInt(LogCall) - PtrUInt(@Target[Ofs+4]);
   Inc(Ofs, 4);
 
   Target[Ofs] := $61; // popa
   Inc(Ofs);
 
-  (*
-  Target[Ofs] := $68; // push addr
-  Inc(Ofs);
-  PPointer(@Target[Ofs])^ := OriginalProc;
-  Inc(Ofs, 4);
-  Target[Ofs] := $cb; // $9A;
-  Inc(Ofs); *)
-
-  Target[Ofs] := $e9; // call original proc
+  Target[Ofs] := $e9; // jump to original proc
   Inc(Ofs);
   // 13 14 15 16
-  PInteger(@Target[Ofs])^ := PtrUInt(OriginalProc) - PtrUInt(@Target[Ofs+4]);
+  PPtrUInt(@Target[Ofs])^ := PtrUInt(OriginalProc) - PtrUInt(@Target[Ofs+4]);
   Inc(Ofs, 4);
 
   Target[Ofs] := $cb; // ret
@@ -108,6 +91,45 @@ begin
     inc(Ofs);
   end;
 
+  result:=@Target[0];
+end;
+
+function GenerateProc64(Target: PByteArray; Ident: Integer; LogCall, OriginalProc: Pointer): Pointer;
+var
+  Ofs: Integer;
+begin
+  Ofs:=0;
+  Target[Ofs]:=$50; Inc(Ofs); // push %rax
+  Target[Ofs]:=$51; Inc(Ofs); // push %rcx
+  Target[Ofs]:=$52; Inc(Ofs); // push %rdx
+  Target[Ofs]:=$53; Inc(Ofs); // push %rbx
+
+  Target[Ofs]:=$b9; Inc(Ofs); // mov Ident, %ecx
+  PLongword(@Target[ofs])^ := Ident;
+  Inc(Ofs, 4);
+
+  Target[Ofs]:=$e8;  Inc(Ofs); // call LogCall
+  PLongword(@Target[ofs])^ := PtrUInt(LogCall) - PtrUInt(@Target[Ofs+4]);
+  Inc(Ofs, 4);
+
+  Target[Ofs]:=$5b; Inc(Ofs); // pop %rbx
+  Target[Ofs]:=$5a; Inc(Ofs); // pop %rdx
+  Target[Ofs]:=$59; Inc(Ofs); // pop %rcx
+  Target[Ofs]:=$58; Inc(Ofs); // pop %rax
+
+  Target[Ofs]:=$e9;  Inc(Ofs); // jmp to Proc
+  PLongword(@Target[ofs])^ := PtrUInt(OriginalProc) - PtrUInt(@Target[Ofs+4]);
+  Inc(Ofs, 4);
+
+  Target[Ofs] := $cb; // ret
+  Inc(Ofs, 1);
+
+  // fuck yeah alignment!
+  while Ofs < ProcSize do
+  begin
+    Target[Ofs] := $90;
+    inc(Ofs);
+  end;
   result:=@Target[0];
 end;
 
@@ -184,10 +206,11 @@ begin
     Setlength(Name, 1000);
     Setlength(Name, GetModuleFileName(Handle, @name[1], Length(Name)));
 
-    if Cardinal(ProcName)>$10000 then
-      LOG('GetProcAddress("'+Name+ '", "'+ ProcName+'")')
-    else
-      LOG('GetProcAddress("'+ Name+'", '+ IntToStr(Cardinal(ProcName))+')');
+    // this is already covered in the "log getProcAddress" feature
+    //if Cardinal(ProcName)>$10000 then
+    //  LOG('GetProcAddress("'+Name+ '", "'+ ProcName+'")')
+    //else
+    //  LOG('GetProcAddress("'+ Name+'", '+ IntToStr(Cardinal(ProcName))+')');
 
     Name := lowercase(Extractfilename(Name));
 
@@ -347,10 +370,18 @@ begin
     if FCount < FMaxFunctions then
     begin
       FunctionNames[FCount]:=lowercase(Extractfilename(Name));
+      {$IFDEF CPUX86}
       GenerateProc86(@FMemory[FCount * ProcSize], FCount, @logcall, nil);
+      {$ELSE}
+      GenerateProc64(@FMemory[FCount * ProcSize], FCount, @logcall, nil);
+      {$ENDIF}
       try
         p := InterceptCreate(Proc, @FMemory[FCount * ProcSize]);
+        {$IFDEF CPUX86}
         GenerateProc86(@FMemory[FCount * ProcSize], FCount, @logcall, p);
+        {$ELSE}
+        p:=GenerateProc64(@FMemory[FCount * ProcSize], FCount, @logcall, p);
+        {$ENDIF}
         Inc(FCount);
         result := True;
       except
@@ -358,13 +389,14 @@ begin
       end;
     end else
     begin
-      LOG('trolololol');
+      LOG('Maximum number of functions have been hooked!');
       result := False;
     end;
   finally
     FCS.Leave;
   end;
 end;
+
 
 initialization
 finale := False;
