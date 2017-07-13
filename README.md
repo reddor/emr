@@ -2,7 +2,7 @@
 
 ![A pretty picture of exemusic recorder](http://i.imgur.com/iQTempz.png)
 
-Binaries available here: https://github.com/reddor/emr/releases/tag/v01020221
+<a href="https://github.com/reddor/emr/releases/tag/v01030221">Latest Releaase</a>
 
 ## WHAT? 
 
