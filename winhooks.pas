@@ -37,7 +37,7 @@ type
   end;
 
 const
-  WinHookVersion = $01020000 + SizeOf(THookSettings);
+  WinHookVersion = $01030000 + SizeOf(THookSettings);
 
 
 procedure StartHook(Settings: PHookSettings); stdcall;
