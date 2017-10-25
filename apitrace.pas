@@ -47,7 +47,11 @@ var
   Hnkh: Cardinal;
 
 const
+{$IFDEF CPUX86}
   ProcSize = 32;
+{$ELSE}
+  ProcSize = 64;
+{$ENDIF}
 
 function GenerateProc86(Target: PByteArray; Ident: Integer; LogCall, OriginalProc: Pointer): Pointer;
 var
@@ -104,25 +108,65 @@ begin
   Target[Ofs]:=$52; Inc(Ofs); // push %rdx
   Target[Ofs]:=$53; Inc(Ofs); // push %rbx
 
-  Target[Ofs]:=$b9; Inc(Ofs); // mov Ident, %ecx
-  PLongword(@Target[ofs])^ := Ident;
-  Inc(Ofs, 4);
+  Target[Ofs]:=$41; Inc(Ofs); // push %r8
+  Target[Ofs]:=$50; Inc(Ofs); // push %r8
 
-  Target[Ofs]:=$e8;  Inc(Ofs); // call LogCall
-  PLongword(@Target[ofs])^ := PtrUInt(LogCall) - PtrUInt(@Target[Ofs+4]);
-  Inc(Ofs, 4);
+  Target[Ofs]:=$41; Inc(Ofs); // push %r9
+  Target[Ofs]:=$51; Inc(Ofs); // push %r9
+
+  Target[Ofs]:=$41; Inc(Ofs); // push %r10
+  Target[Ofs]:=$52; Inc(Ofs); // push %r10
+
+  Target[Ofs]:=$41; Inc(Ofs); // push %r11
+  Target[Ofs]:=$53; Inc(Ofs); // push %r11
+
+
+  //Target[Ofs]:=$b9; Inc(Ofs); // mov Ident, %rcx
+  //PLongword(@Target[ofs])^ := Ident;
+  //Inc(Ofs, 4);
+  Target[Ofs]:=$48; Inc(Ofs); // mov LogCall, %rax
+  Target[Ofs]:=$b9; Inc(Ofs);
+  PUInt64(@Target[ofs])^ := Ident;
+  Inc(Ofs, SizeOf(UInt64));
+
+
+  Target[Ofs]:=$48; Inc(Ofs); // mov LogCall, %rax
+  Target[Ofs]:=$b8; Inc(Ofs);
+  PUInt64(@Target[ofs])^ := PtrUInt(LogCall);
+  Inc(Ofs, SizeOf(UInt64));
+
+  Target[Ofs]:=$ff; Inc(Ofs); // call %rax
+  Target[Ofs]:=$d0; Inc(Ofs);
+
+  Target[Ofs]:=$41; Inc(Ofs); // pop %r11
+  Target[Ofs]:=$5b; Inc(Ofs); // pop %r11
+
+  Target[Ofs]:=$41; Inc(Ofs); // pop %r10
+  Target[Ofs]:=$5a; Inc(Ofs); // pop %r10
+
+  Target[Ofs]:=$41; Inc(Ofs); // pop %r9
+  Target[Ofs]:=$59; Inc(Ofs); // pop %r9
+
+  Target[Ofs]:=$41; Inc(Ofs); // pop %r8
+  Target[Ofs]:=$58; Inc(Ofs); // pop %r8
 
   Target[Ofs]:=$5b; Inc(Ofs); // pop %rbx
   Target[Ofs]:=$5a; Inc(Ofs); // pop %rdx
   Target[Ofs]:=$59; Inc(Ofs); // pop %rcx
   Target[Ofs]:=$58; Inc(Ofs); // pop %rax
 
-  Target[Ofs]:=$e9;  Inc(Ofs); // jmp to Proc
-  PLongword(@Target[ofs])^ := PtrUInt(OriginalProc) - PtrUInt(@Target[Ofs+4]);
+
+  // jmp to offset
+  Target[Ofs]:=$FF;  Inc(Ofs); // jmp to Proc
+  Target[Ofs]:=$25;  Inc(Ofs); // jmp to Proc
+  PLongword(@Target[ofs])^ := 0;
   Inc(Ofs, 4);
 
-  Target[Ofs] := $cb; // ret
-  Inc(Ofs, 1);
+  PUInt64(@Target[ofs])^:=PtrUInt(OriginalProc);
+  Inc(Ofs, SizeOf(UInt64));
+
+  //Target[Ofs] := $cb; // ret
+  //Inc(Ofs, 1);
 
   // fuck yeah alignment!
   while Ofs < ProcSize do
@@ -133,7 +177,11 @@ begin
   result:=@Target[0];
 end;
 
+{$IFDEF CPUX86}
 procedure logcall(id: Cardinal); stdcall;
+{$ELSE}
+procedure logcall(id: UInt64); cdecl;
+{$ENDIF}
 var
   i, j: Integer;
   thrid: DWORD;
@@ -144,6 +192,7 @@ begin
   try
   LOG(FunctionNames[Cardinal(id mod Length(FunctionNames))]);
   except
+    LOG('Logging function '+IntToStr(id)+' did not work');
   end;
 end;
 
@@ -205,12 +254,6 @@ begin
     Pool.FCS.Enter;
     Setlength(Name, 1000);
     Setlength(Name, GetModuleFileName(Handle, @name[1], Length(Name)));
-
-    // this is already covered in the "log getProcAddress" feature
-    //if Cardinal(ProcName)>$10000 then
-    //  LOG('GetProcAddress("'+Name+ '", "'+ ProcName+'")')
-    //else
-    //  LOG('GetProcAddress("'+ Name+'", '+ IntToStr(Cardinal(ProcName))+')');
 
     Name := lowercase(Extractfilename(Name));
 
