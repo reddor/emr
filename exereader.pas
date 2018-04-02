@@ -182,7 +182,12 @@ begin
   if FDescriptor^.Name = 0 then
     raise Exception.Create('Invalid Image Import Descriptor!');
 
-  FDLLName:=PChar(FParent.GetVirtualAddress(FDescriptor^.Name));
+  try
+    FDLLName:=PChar(FParent.GetVirtualAddress(FDescriptor^.Name));
+  except
+    result:=False;
+    Exit;
+  end;
 
   if FDescriptor^.OriginalFirstThunk <> 0 then
     p := FParent.GetVirtualAddress(FDescriptor^.OriginalFirstThunk)
