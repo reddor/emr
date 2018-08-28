@@ -1596,7 +1596,7 @@ begin
 
   TrampolineExitProcess := InterceptCreate(@ExitProcess, @ExitProcessBounce);
 
-  if Config.DumpACM then
+  if Config.DumpACM or Config.MuteACM then
   begin
     hng := LoadLibrary('MSACM32.dll');
     TrampolineacmStreamOpen := InterceptCreate(GetProcAddress(hng, 'acmStreamOpen'), @acmStreamOpenBounce);
