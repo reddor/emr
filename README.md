@@ -1,6 +1,6 @@
 # Exemusic Recorder
 
-![A pretty picture of exemusic recorder](http://i.imgur.com/iQTempz.png)
+![A pretty picture of exemusic recorder](https://i.imgur.com/pOxB2vz.png)
 
 <a href="https://github.com/reddor/emr/releases/tag/v01040222">Latest Release</a>
 
