@@ -2,7 +2,7 @@
 
 ![A pretty picture of exemusic recorder](http://i.imgur.com/iQTempz.png)
 
-<a href="https://github.com/reddor/emr/releases/tag/v01030221b">Latest Release</a>
+<a href="https://github.com/reddor/emr/releases/tag/v01040222">Latest Release</a>
 
 ## WHAT? 
 
