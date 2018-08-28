@@ -1,15 +1,15 @@
 object Form1: TForm1
-  Left = 1245
-  Height = 528
-  Top = 533
+  Left = 491
+  Height = 540
+  Top = 338
   Width = 375
   BorderStyle = bsDialog
   Caption = 'Exemusic Recorder'
-  ClientHeight = 528
+  ClientHeight = 540
   ClientWidth = 375
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '1.8.0.6'
   object GroupBox1: TGroupBox
     Left = 8
     Height = 128
@@ -87,11 +87,11 @@ object Form1: TForm1
   end
   object GroupBox2: TGroupBox
     Left = 8
-    Height = 201
+    Height = 216
     Top = 144
     Width = 360
     Caption = 'Options'
-    ClientHeight = 181
+    ClientHeight = 196
     ClientWidth = 356
     TabOrder = 1
     OnClick = GroupBox2Click
@@ -109,21 +109,21 @@ object Form1: TForm1
       TabOrder = 0
     end
     object DumpACMSamples: TCheckBox
-      Left = 160
+      Left = 8
       Height = 19
       Hint = 'Saves all streams to disk that have been uncompressed using acmStreamConvert'
-      Top = 8
-      Width = 196
-      Caption = 'Dump ACM compressed samples'
+      Top = 56
+      Width = 129
+      Caption = 'Dump ACM samples'
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
     end
     object PreventFullscreen: TCheckBox
-      Left = 160
+      Left = 168
       Height = 19
       Hint = 'Tries to enforce windowed mode - does not work with DirectX'
-      Top = 32
+      Top = 8
       Width = 176
       Caption = 'Prevent Fullscreen (OGL only)'
       ParentShowHint = False
@@ -145,7 +145,7 @@ object Form1: TForm1
       Left = 8
       Height = 19
       Hint = 'Logs all calls to GetProcAddress (and LoadLibrary)'
-      Top = 104
+      Top = 128
       Width = 127
       Caption = 'Log GetProcAddress'
       ParentShowHint = False
@@ -156,7 +156,7 @@ object Form1: TForm1
       Left = 8
       Height = 19
       Hint = 'Logs all dll calls (kernel32.dll and other system libs excluded). This will *really* slow down the target process.'
-      Top = 152
+      Top = 176
       Width = 142
       Caption = 'Log all DLL calls (slow!)'
       ParentShowHint = False
@@ -164,10 +164,10 @@ object Form1: TForm1
       TabOrder = 12
     end
     object PreventCreateFile: TCheckBox
-      Left = 160
+      Left = 168
       Height = 19
       Hint = 'Prevents writing to disk using CreateFile - this might have undesired side-effects.'
-      Top = 56
+      Top = 32
       Width = 117
       Caption = 'Prevent File Writes'
       ParentShowHint = False
@@ -175,7 +175,7 @@ object Form1: TForm1
       TabOrder = 5
     end
     object PreventSocket: TCheckBox
-      Left = 160
+      Left = 168
       Height = 19
       Hint = 'Prevents creation of Winsock-sockets.'
       Top = 104
@@ -186,7 +186,7 @@ object Form1: TForm1
       TabOrder = 9
     end
     object PreventCreateProc: TCheckBox
-      Left = 160
+      Left = 168
       Height = 19
       Hint = 'Prevents the process from spawning new processes'
       Top = 80
@@ -197,7 +197,7 @@ object Form1: TForm1
       TabOrder = 7
     end
     object PreventLogs: TCheckBox
-      Left = 160
+      Left = 168
       Height = 19
       Hint = 'Just don''t log anything'
       Top = 152
@@ -211,7 +211,7 @@ object Form1: TForm1
       Left = 8
       Height = 19
       Hint = 'Log all calls to CreateFile'
-      Top = 56
+      Top = 80
       Width = 100
       Caption = 'Log File Access'
       ParentShowHint = False
@@ -222,7 +222,7 @@ object Form1: TForm1
       Left = 8
       Height = 19
       Hint = 'Logs calls to CreateProcess'
-      Top = 80
+      Top = 104
       Width = 131
       Caption = 'Log Process Creation'
       ParentShowHint = False
@@ -230,7 +230,7 @@ object Form1: TForm1
       TabOrder = 6
     end
     object InjectShaders: TCheckBox
-      Left = 160
+      Left = 168
       Height = 19
       Hint = 'Tries to inject/replace shaders that have been previously dumped using the "Dump Shaders" option. '
       Top = 128
@@ -244,18 +244,26 @@ object Form1: TForm1
       Left = 8
       Height = 19
       Hint = 'Logs all calls to wglGetProcAddress'
-      Top = 128
+      Top = 152
       Width = 136
       Caption = 'Log WGLGetProcAddr'
       ParentShowHint = False
       ShowHint = True
       TabOrder = 10
     end
+    object MuteACMSamples: TCheckBox
+      Left = 168
+      Height = 19
+      Top = 56
+      Width = 124
+      Caption = 'Mute ACM samples'
+      TabOrder = 14
+    end
   end
   object GroupBox3: TGroupBox
     Left = 8
     Height = 48
-    Top = 352
+    Top = 368
     Width = 360
     Caption = 'Speed'
     ClientHeight = 28
@@ -291,7 +299,7 @@ object Form1: TForm1
   object StartButton: TButton
     Left = 208
     Height = 25
-    Top = 408
+    Top = 424
     Width = 75
     Caption = 'Start'
     Default = True
@@ -302,7 +310,7 @@ object Form1: TForm1
   object ExitButton: TButton
     Left = 293
     Height = 25
-    Top = 408
+    Top = 424
     Width = 75
     Caption = 'Exit'
     OnClick = ExitButtonClick
@@ -311,7 +319,7 @@ object Form1: TForm1
   object ProgressBar1: TProgressBar
     Left = 8
     Height = 25
-    Top = 408
+    Top = 424
     Width = 192
     TabOrder = 5
   end
@@ -329,7 +337,7 @@ object Form1: TForm1
   object GroupBox4: TGroupBox
     Left = 8
     Height = 72
-    Top = 448
+    Top = 464
     Width = 361
     Caption = 'Experimental'
     ClientHeight = 52

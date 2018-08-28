@@ -19,6 +19,7 @@ type
     DenySpawnProcesses: Boolean;
     RecordAudio: Boolean;
     DumpACM: Boolean;
+    MuteACM: Boolean;
     SpeedFactor: Integer;
     Windowed: Boolean;
     ShowCursor: Boolean;
@@ -37,7 +38,7 @@ type
   end;
 
 const
-  WinHookVersion = $01030000 + SizeOf(THookSettings);
+  WinHookVersion = $01040000 + SizeOf(THookSettings);
 
 
 procedure StartHook(Settings: PHookSettings); stdcall;
@@ -717,6 +718,7 @@ end;
 function acmStreamConvertBounce(has: THandle; p: LPACMSTREAMHEADER; fdwConvert: DWORD): MMRESULT; stdcall;
 var
   r: TWaveRecorder;
+  i: Integer;
 begin
   if Assigned(TrampolineacmStreamConvert) then
   begin
@@ -729,6 +731,11 @@ begin
       if Assigned(p^.pbDst) then
         r.WriteData(p^.pbDst, p^.cbDstLengthUsed);
     end;
+    if Config.MuteACM and Assigned(p^.pbDst) then
+    begin
+      for i:=0 to p^.cbDstLengthUsed do
+        p^.pbDst[i]:=0;
+    end;
   end;
 end;
 
@@ -740,7 +747,8 @@ begin
       result:=TrampolineShowCursor(True)
     else
       result:=TrampolineShowCursor(bShow);
-  end;
+  end else
+    result:=0;
 end;
 
 function CreateWindowExABounce(dwExStyle:DWORD; lpClassName:LPCSTR; lpWindowName:LPCSTR;
@@ -1512,7 +1520,6 @@ end;
 
 procedure StartHook(Settings: PHookSettings); stdcall;
 var
-  p: Pointer;
   hng: THANDLE;
 begin
   if Assigned(cs) then
@@ -1523,7 +1530,7 @@ begin
   if not Assigned(Settings) then
   begin
     MessageBoxA(0, 'No parameters!', 'Hook Error', MB_ICONERROR);
-    ExitProcess(-1);
+    ExitProcess(longword(-1));
     Exit;
   end;
 

@@ -14,6 +14,7 @@ type
     BrowseExe: TButton;
     BrowseOutDir: TButton;
     CheckBox1: TCheckBox;
+    MuteACMSamples: TCheckBox;
     UseSimpleInjector: TCheckBox;
     HookInProcesses: TCheckBox;
     GroupBox4: TGroupBox;
@@ -152,6 +153,7 @@ begin
   FSettings.OutputPath:=OutputDir.Text;
   FSettings.HookDLLLocation:=ExtractFilePath(Paramstr(0)) + HookDLLName;
   FSettings.HookInNewProcesses:=HookInProcesses.Checked;
+  FSettings.MuteACM:=MuteACMSamples.Checked;
   FSettings.SlowWaveWrite:=Checkbox1.Checked;
   if SlowSpeed.Checked then
     Fsettings.SpeedFactor:=1
