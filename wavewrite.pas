@@ -19,6 +19,8 @@ type
     datasize: Uint32;
   end;
 
+  TWaveRecorderAudioState = (asStartSilence, asAudioData, asSilence, asSilenceTresh);
+
   { TWaveRecorder }
 
   TWaveRecorder = class
@@ -29,14 +31,19 @@ type
     FCurrent: LPWAVEHDR;
     FCurrentWritten: longword;
     FLastTimestamp: longword;
+    FState: TWaveRecorderAudioState;
+    FSilenceDuration: Integer;
+    FCutStartSilence: Boolean;
+    function IsSilence(data: Pointer; size: Integer): Boolean;
   public
-    constructor Create(filename: string; format: WAVEFORMATEX);
+    constructor Create(filename: string; format: WAVEFORMATEX; CutStartSilence: Boolean = false);
     destructor Destroy; override;
 
     procedure Flush;
     procedure WriteData(data: Pointer; size: Integer);
     procedure WriteWaveHdr(data: LPWAVEHDR; Timestamp: longword);
     procedure WritePartially(Timestamp: longword);
+    function IsSilent: Boolean;
   end;
 
   { TSlowWriterThread }
@@ -128,10 +135,40 @@ begin
   FCS.Leave;
 end;
 
-constructor TWaveRecorder.Create(filename: string; format: WAVEFORMATEX);
+function TWaveRecorder.IsSilence(data: Pointer; size: Integer): Boolean;
+var
+  i: Integer;
+begin
+  Result:=True;
+  if FHeader.waveFormat.wf.wFormatTag = 3 then
+  begin
+    for i:=0 to (size div SizeOf(Single)) - 1 do
+    begin
+      // for float, we blindly assume 32 bit single
+      if abs((PSingle(@PByteArray(data)^[i * SizeOf(Single)]))^) > 0.00001 then
+      begin
+        Result:=False;
+        Exit;
+      end;
+    end;
+  end else
+  begin
+    // for integer streams, just test for zero
+    for i:=0 to size-1 do
+    if (PByteArray(data)^[i] <> 0) then
+    begin
+      Result:=False;
+      Exit;
+    end;
+  end;
+end;
+
+constructor TWaveRecorder.Create(filename: string; format: WAVEFORMATEX;
+  CutStartSilence: Boolean);
 begin
   Fillchar(FHeader, SizeOf(FHeader), #0);
-
+  FState:=asStartSilence;
+  FCutStartSilence:=CutStartSilence;
   FHeader.datasize:=0;
   FHeader.filesize:=sizeOf(FHeader)-8;
 
@@ -193,12 +230,45 @@ var
 begin
   if FCanWrite and Assigned(data) then
   begin
+    if IsSilence(data, size) then
+    begin
+      case FState of
+        asStartSilence:
+        begin
+          if FCutStartSilence then
+            Exit;
+        end;
+        asAudioData:
+        begin
+          FState:=asSilence;
+          FSilenceDuration:=size;
+        end;
+        asSilence:
+        begin
+          FSilenceDuration:=FSilenceDuration + size;
+          if FSilenceDuration >= FHeader.waveFormat.wf.nAvgBytesPerSec then
+          begin
+            FState:=asSilenceTresh;
+          end;
+          if FCutStartSilence then
+            Exit;
+        end;
+        asSilenceTresh:
+        begin
+          if FCutStartSilence then
+            Exit;
+        end;
+      end;
+    end else
+    begin
+      FState:=asAudioData;
+    end;
     Inc(FHeader.filesize, size);
     Inc(FHeader.datasize, size);
     op:=FilePos(FFile);
     Seek(FFile, 0);
     Blockwrite(FFile, FHeader, SizeOf(FHeader));
-    Seek(FFIle, op);
+    Seek(FFile, op);
     Blockwrite(FFile, data^, size);
   end;
 end;
@@ -239,6 +309,11 @@ begin
       FCurrent:=nil;
     FLastTimestamp:=Timestamp;
   end;
+end;
+
+function TWaveRecorder.IsSilent: Boolean;
+begin
+  result:=FState = asSilenceTresh;
 end;
 
 initialization

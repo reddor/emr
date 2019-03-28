@@ -18,6 +18,8 @@ type
     DenyFileWriting: Boolean;
     DenySpawnProcesses: Boolean;
     RecordAudio: Boolean;
+    SkipStartSilence: Boolean;
+    QuitOnSilence: Boolean;
     DumpACM: Boolean;
     MuteACM: Boolean;
     SpeedFactor: Integer;
@@ -63,6 +65,7 @@ var
   cs: TCriticalSection = nil;
   cs2:TCriticalSection = nil;
   Items: TFPHashList;
+  AudioRecorders: array of TWaveRecorder;
   LibNames: TFPStringHashTable;
   BasePath,
   BaseName: ansistring;
@@ -112,13 +115,45 @@ begin
   cs.Leave;
 end;
 
+function AreWaveRecordersSilent: Boolean;
+var
+  i: Integer;
+begin
+  result:=False;
+  cs.Enter;
+  try
+    if Config.QuitOnSilence and (Length(AudioRecorders)>0) then
+    begin
+      Result:=True;
+      for i:=0 to Length(AudioRecorders)-1 do
+      if not AudioRecorders[i].IsSilent() then
+      begin
+        result:=False;
+        Break;
+      end;
+    end;
+  except
+
+  end;
+  cs.Leave;
+end;
+
 procedure RegisterHandleObj(h: THandle; const subSystem: string; data: TObject);
+var
+  i: Integer;
 begin
   if Assigned(cs) then
   begin
     cs.Enter;
     try
       Items.Add(subSystem+IntToHex(h, 8), data);
+
+      if (data is TWaveRecorder) and ((subSystem = 'wave') or (subSystem = 'dsound'))  then
+      begin
+        i:=Length(AudioRecorders);
+        Setlength(AudioRecorders, i+1);
+        AudioRecorders[i]:=TWaveRecorder(data);
+      end;
     except
       LOG('Error registering handle for '+subSystem);
     end;
@@ -141,14 +176,28 @@ end;
 
 procedure RemoveHandleObj(h: THandle; const subSystem: string);
 var
-  i: Integer;
+  i, j: Integer;
+  o: TObject;
 begin
   if Assigned(Cs) then
   begin
     cs.Enter;
     try
-      i:=Items.FindIndexOf(subSystem+IntToHex(h, 8));
-      Items.Delete(i);
+      o:=Items.Find(subSystem+IntToHex(h, 8));
+      if Assigned(o) then
+      begin
+        i:=Items.FindIndexOf(subSystem+IntToHex(h, 8));
+        Items.Delete(i);
+
+        j:=Length(AudioRecorders)-1;
+        for i:=0 to j do
+        if AudioRecorders[i] = o then
+        begin
+          AudioRecorders[i]:=AudioRecorders[j];
+          Setlength(AudioRecorders, j);
+          Break;
+        end;
+      end;
     finally
       cs.Leave;
     end;
@@ -324,35 +373,6 @@ begin
   end;
 end;
 
-function getEntryPoint(AFilename: widestring): PtrUInt;
-var
-  f: TExeFile;
-begin
-  f:=TExeFile.Create;
-  try
-    if f.LoadFile(AFilename) then
-    begin
-      case f.FileType of
-        fkExe32:
-        begin
-          result:=f.NTHeader.OptionalHeader.ImageBase + f.NTHeader.OptionalHeader.AddressOfEntryPoint;
-          // Writeln('Image Base: '+IntToHex(f.NTHeader.OptionalHeader.ImageBase, 8)+', Entry point: '+IntToHex(entry, 8));
-        end;
-        fkExe64:
-        begin
-          result:=f.NTHeader64.OptionalHeader.ImageBase + f.NTHeader64.OptionalHeader.AddressOfEntryPoint;
-          raise Exception.Create('Only 32 bit supported at this time');
-        end;
-        else
-          result:=0;
-      end;
-    end else
-      result:=0;
-  finally
-    f.Free;
-  end;
-end;
-
 function CreateProcessWBounce(lpApplicationName: LPWSTR; lpCommandLine: LPWSTR;
     lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL;
     dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR;
@@ -461,7 +481,6 @@ var
   TrampolineChangeDisplaySettingsA: function(var lpDevMode: TDeviceModeA; dwFlags: DWORD): Longint; stdcall = nil;
   TrampolineChangeDisplaySettingsW: function(var lpDevMode: TDeviceModeW; dwFlags: DWORD): Longint; stdcall = nil;
 
-
 function ChangeDisplaySettingsABounce(var lpDevMode: TDeviceModeA; dwFlags: DWORD): Longint; stdcall;
 begin
   if Assigned(TrampolineChangeDisplaySettingsA) then
@@ -483,34 +502,6 @@ begin
       result:=TrampolineChangeDisplaySettingsW(lpDevMode, dwFlags);
   end;
 end;
-(*
-type
-     tACMSTREAMHEADER = record
-       cbStruct:DWORD;               // sizeof(ACMSTREAMHEADER)
-       fdwStatus:DWORD;              // ACMSTREAMHEADER_STATUSF_*
-       dwUser:DWORD;                 // user instance data for hdr
-       pbSrc:LPBYTE;
-       cbSrcLength:DWORD;
-       cbSrcLengthUsed:DWORD;
-       dwSrcUser:DWORD;              // user instance data for src
-       pbDst:LPBYTE;
-       cbDstLength:DWORD;
-       cbDstLengthUsed:DWORD;
-       dwDstUser:DWORD;              // user instance data for dst
-       dwReservedDriver:array[0..9] of DWORD;   // driver reserved work space
-     end;
-     ACMSTREAMHEADER = tACMSTREAMHEADER;
-     PACMSTREAMHEADER = ^tACMSTREAMHEADER;
-     LPACMSTREAMHEADER = ^tACMSTREAMHEADER;
-
-LPHACMDRIVER = pointer;
-  HACMDRIVERID  = THandle;
-  HACMOBJ = THandle;
-  HACMSTREAM = Pointer;
-  HACMDRIVER = Pointer;
-  LPACMFORMATDETAILS = Pointer;
-  ACMFORMATENUMCB = Pointer;
-  ACMDRIVERENUMCB = Pointer;   *)
 
 var
   TrampolineCreateWindowExA: function(dwExStyle:DWORD; lpClassName:LPCSTR; lpWindowName:LPCSTR;
@@ -819,7 +810,7 @@ begin
       begin
         s:=GetUniqueFilename(BasePath, BaseName+'_record_','.wav');
         LOG('Recording wave file '+s);
-        RegisterHandleObj(x1^, 'wave', TWaveRecorder.Create(s, origFmt));
+        RegisterHandleObj(x1^, 'wave', TWaveRecorder.Create(s, origFmt, Config.SkipStartSilence));
       end;
     end;
   end;
@@ -860,6 +851,12 @@ begin
           p.WriteWaveHdr(x2, GetTickCount)
         else
           p.WriteData(x2^.lpData, x2^.dwBufferLength);
+
+        if AreWaveRecordersSilent then
+        begin
+          LOG('All wave outputs are producing silence, quitting!');
+          ExitProcess(0);
+        end;
       end;
     end;
   end;
@@ -1200,7 +1197,7 @@ begin
     if Config.RecordAudio and Assigned(ppDSBuffer) and Assigned(pcDSBufferDesc.lpwfxFormat) then
     begin
       s:=GetUniqueFilename(BasePath, BaseName+'_record_','.wav');
-      RegisterHandleObj(Handle(ppDSBuffer), 'dsound', TWaveRecorder.Create(s, origFmt));
+      RegisterHandleObj(Handle(ppDSBuffer), 'dsound', TWaveRecorder.Create(s, origFmt, config.SkipStartSilence));
     end;
 
   end;
@@ -1543,8 +1540,6 @@ begin
     Exit;
   end;
 
-  //RegisterLibrary(LoadLibrary('kernel32.dll'), 'kernel32.dll');
-
   BasePath:=Config.OutputPath;
   if Length(BasePath)=0 then
     BasePath:=ExtractFilePath(Paramstr(0));
@@ -1571,7 +1566,7 @@ begin
     StartLog;
     LOG('Exemusic Recorder v' + IntToHex(WinHookVersion, 8) );
     {$IFNDEF CPUX86}
-    LOG('Experimental 64 bit version');
+    LOG('64 bit version');
     {$ENDIF}
   end;
 
@@ -1602,13 +1597,6 @@ begin
     TrampolineacmStreamOpen := InterceptCreate(GetProcAddress(hng, 'acmStreamOpen'), @acmStreamOpenBounce);
     TrampolineacmStreamClose := InterceptCreate(GetProcAddress(hng, 'acmStreamClose'), @acmStreamCloseBounce);
     TrampolineacmStreamConvert := InterceptCreate(GetProcAddress(hng, 'acmStreamConvert'), @acmStreamConvertBounce);
-
-    //TrampolineacmDriverEnum:=InterceptCreate(GetProcAddress(hng, 'acmDriverEnum'), @acmDriverEnumBounce);
-    //TrampolineacmFormatEnum:=InterceptCreate(GetProcAddress(hng, 'acmFormatEnumW'), @acmFormatEnumBounce);
-    //TrampolineacmStreamPrepareHeader:=InterceptCreate(GetProcAddress(hng, 'acmStreamPrepareHeader'), @acmStreamPrepareHeaderBounce);
-    //TrampolineAcmDriveropen:=InterceptCreate(GetProcAddress(hng, 'acmDriverOpen'), @acmDriverOpenBounce);
-    //TrampolineAcmDriverclose:=InterceptCreate(GetProcAddress(hng, 'acmDriverClose'), @acmDriverCloseBounce);
-    //TrampolineAcmMetrics:=InterceptCreate(GetProcAddress(hng, 'acmMetrics'), @acmMetricsBounce);
   end;
 
   TrampolineCreateFileA := InterceptCreate(@CreateFileA, @CreateFileABounce);
@@ -1633,10 +1621,6 @@ begin
   TrampolinewglGetProcAddress := InterceptCreate(@wglGetProcAddress, @wglGetProcAddressBounce);
 
   TrampolineShowCursor := InterceptCreate(@ShowCursor, @ShowCursorBounce);
-
-  // TrampolineDirectDrawCreate := InterceptCreate(@DirectDrawCreate, @DirectDrawCreateBounce);
-  // TrampolineDirect3dCreate9 := InterceptCreate(@_Direct3DCreate9, @Direct3dCreate9Bounce);
-  // TrampolineWSAStartup := InterceptCreate(@WSAStartup, @WSAStartupBounce);
 
   Trampolinesocket := InterceptCreate(@socket, @socketBounce);
 

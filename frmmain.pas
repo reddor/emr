@@ -135,6 +135,9 @@ begin
          Exit;
 
   FSettings.Version:=WinHookVersion;
+  // TODO: add UI for this
+  FSettings.SkipStartSilence:=True;
+  FSettings.QuitOnSilence:=True;
   FSettings.CreateLog:=not PreventLogs.Checked;
   FSettings.DenyFileWriting:=PreventCreateFile.Checked;
   FSettings.DenySpawnProcesses:=PreventCreateProc.Checked;
